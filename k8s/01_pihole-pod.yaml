@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pihole-pvc
+  name: pihole-data--pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,7 +12,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: dnsmasq-pvc
+  name: pihole-dnsmasq-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -24,6 +24,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: pihole-pod
+  annotations:
+    io.podman.annotations.Network: "homeserver01-network"
   labels:
     app: pihole
 spec:
@@ -52,13 +54,13 @@ spec:
       value: "30"
     volumeMounts:
     - mountPath: /etc/pihole
-      name: pihole-storage
+      name: data-storage
     - mountPath: /etc/dnsmasq.d
       name: dnsmasq-storage
   volumes:
-  - name: pihole-storage
+  - name: data-storage
     persistentVolumeClaim:
-      claimName: pihole-pvc
+      claimName: pihole-data-pvc
   - name: dnsmasq-storage
     persistentVolumeClaim:
-      claimName: dnsmasq-pvc
+      claimName: pihole-dnsmasq-pvc

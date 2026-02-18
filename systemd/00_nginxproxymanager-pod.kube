@@ -6,10 +6,10 @@ Wants=podman-user-wait-network-online.service
 After=podman-user-wait-network-online.service
 
 [Service]
-ExecStartPre=/bin/sleep 60
+ExecStartPre=/bin/sleep 5
 
 [Kube]
 # Point to the yaml file in the same directory
-Yaml=/srv/apps/nginxproxymanager/nginxproxymanager_pod.yaml
+Yaml=/srv/apps/nginxproxymanager/00_nginxproxymanager-pod.yaml
 # Use  config map in the same directory
-# ConfigMap=/srv/apps/nginxproxymanager/nginxproxymanager_configmap.yaml
+# ConfigMap=/srv/apps/nginxproxymanager/00_nginxproxymanager_configmap.yaml
