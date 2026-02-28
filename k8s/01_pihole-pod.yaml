@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pihole-data--pvc
+  name: pihole-data-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -25,32 +25,35 @@ kind: Pod
 metadata:
   name: pihole-pod
   annotations:
-    io.podman.annotations.Network: "homeserver01-network"
+    io.podman.annotations.network: "homeserver01-network"
   labels:
     app: pihole
 spec:
   containers:
-  - name: pihole
+  - name:  pihole
     image: docker.io/pihole/pihole:latest
     ports:
     - containerPort: 53
-      hostPort: 153
+      hostPort: 53
       protocol: UDP
     - containerPort: 53
-      hostPort: 153
+      hostPort: 53
       protocol: TCP
-    - containerPort: 80
+    - containerPort: 180
       hostPort: 180
-      protocol: TCP
+    - containerPort: 1443
+      hostPort: 1443            
     env:
     - name: TZ
-      value: "UTC"
-    - name: WEBPASSWORD
+      value: "Europe/Lisbon"
+    - name: FTLCONF_webserver_port
+      value: '180o,1443os,[::]:180o,[::]:1443os'
+    - name: FTLCONF_webserver_api_password
       valueFrom:
         secretKeyRef:
           name: pihole-secrets
-          key: web-password
-    - name: MAXDBDAYS
+          key: FTLCONF_webserver_api_password
+    - name: FTLCONF_database_maxDBdays
       value: "30"
     volumeMounts:
     - mountPath: /etc/pihole

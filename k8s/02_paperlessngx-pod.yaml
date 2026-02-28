@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-media-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi # Adjust based on your document volume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-export-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-consume-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: paperless-pod
+  labels:
+    app: paperless
+spec:
+  containers:
+    - name: redis
+      image: docker.io/library/redis:8
+    - name: db
+      image: docker.io/library/postgres:18
+      env:
+        - name: POSTGRES_DB
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: parperlessngx-secrets
+              key: PAPERLESS_DBPASS
+      volumeMounts:
+        - mountPath: /var/lib/postgresql
+          name: paperless-db-data
+    - name: paperlessngx
+      image: ghcr.io/paperless-ngx/paperless-ngx:latest
+      ports:
+        - containerPort: 8000
+          hostPort: 280
+      env:
+        - name: PAPERLESS_REDIS
+          value: redis://paperless-pod-redis:6379
+        - name: PAPERLESS_DBHOST
+          value: paperless-pod-db
+        - name: PAPERLESS_DBNAME
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: POSTGRES_DB
+        - name: PAPERLESS_DBUSER
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: POSTGRES_USER
+        - name: PAPERLESS_DBPASS
+          valueFrom:
+            secretKeyRef:
+              name: parperlessngx-secrets
+              key: PAPERLESS_DBPASS
+        - name: PAPERLESS_OCR_LANGUAGE
+          value: eng
+        - name: PAPERLESS_TIME_ZONE
+          value: UTC
+        - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: PAPERLESS_CSRF_TRUSTED_ORIGINS
+        - name: PAPERLESS_URL
+          valueFrom:
+           configMapKeyRef:
+            name: paperlessngx-configmap
+            key: PAPERLESS_URL
+        - name: PAPERLESS_FORCE_SCRIPT_NAME
+          value: ""
+        - name: PAPERLESS_PROXY_SSL_HEADER
+          value: '["HTTP_X_FORWARDED_PROTO", "https"]'          
+      volumeMounts:
+        - mountPath: /usr/src/paperless/data
+          name: paperless-data
+        - mountPath: /usr/src/paperless/media
+          name: paperless-media
+        - mountPath: /usr/src/paperless/export
+          name: paperless-export
+        - mountPath: /usr/src/paperless/consume
+          name: paperless-consume
+  volumes:
+    - name: paperless-db-data
+      persistentVolumeClaim:
+        claimName: paperless-db-pvc
+    - name: paperless-data
+      persistentVolumeClaim:
+        claimName: paperless-data-pvc
+    - name: paperless-media
+      persistentVolumeClaim:
+        claimName: paperless-media-pvc
+    - name: paperless-export
+      persistentVolumeClaim:
+        claimName: paperless-export-pvc
+    - name: paperless-consume
+      persistentVolumeClaim:
+        claimName: paperless-consume-pvc

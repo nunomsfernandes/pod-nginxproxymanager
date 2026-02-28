@@ -6,11 +6,11 @@ Wants=podman-user-wait-network-online.service
 After=podman-user-wait-network-online.service
 
 [Service]
-ExecStartPre=/bin/sleep 30
+ExecStartPre=/bin/sleep 10
 
 [Kube]
 # Point to the yaml file in the same directory
-Yaml=/srv/apps/01_pihole/01_pihole-pod.yaml
+Yaml=/srv/apps/02_paperlessngx/02_paperlessngx-pod.yaml
 Network=homeserver01-network
 # Use  config map in the same directory
-# ConfigMap=/srv/apps/pihole/01_pihole-configmap.yaml
+ConfigMap=/srv/apps/02_paperlessngx/02_paperlessngx-configmap.yaml

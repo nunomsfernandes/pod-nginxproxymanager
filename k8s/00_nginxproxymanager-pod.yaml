@@ -25,7 +25,7 @@ kind: Pod
 metadata:
   name: nginxproxymanager-pod
   annotations:
-    io.podman.annotations.Network: "homeserver01-network"
+    io.podman.annotations.network: homeserver01-network
   labels:
     app: nginxproxymanager
 spec:
